@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mj.leapremote.dao.InfoDao" >
+    <resultMap id="BaseResultMap" type="com.mj.leapremote.model.Info" >
+        <id column="description" property="description" jdbcType="VARCHAR" />
+        <result column="content" property="content" jdbcType="VARCHAR" />
+    </resultMap>
+    <sql id="Base_Column_List" >
+        description, content
+    </sql>
+    <select id="getByDescription" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from leapremote_info
+        where binary description = #{description}
+    </select>
+    <select id="getAll" resultMap="BaseResultMap">
+        select
+            *
+        from leapremote_info
+    </select>
+    <insert id="insert" parameterType="com.mj.leapremote.model.Info" >
+        insert into leapremote_info (description, content)
+        values (#{description}, #{content})
+    </insert>
+    <delete id="delete" parameterType="java.lang.String" >
+        delete from leapremote_info
+        where description = #{description}
+    </delete>
+</mapper>
