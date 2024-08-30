@@ -1,5 +1,5 @@
 name: GraalVM build
-on: [ push, pull_request ]
+on: push
 jobs:
   build:
     name: ${{ matrix.version }} on ${{ matrix.os }}
@@ -8,6 +8,7 @@ jobs:
       matrix:
         version: [ latest ]
         os: [ macos-latest, windows-latest, ubuntu-latest ]
+        arch: [x86_64, aarch64]
     steps:
       - uses: actions/checkout@v2
       - uses: graalvm/setup-graalvm@v1
@@ -24,5 +25,50 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: mvn -Pnative native:compile
-        env:
-          NO_DOCKER: ${{ runner.os != 'Linux' }}
+       # 上传Linux x86_64平台的构建产物
+      - name: Upload artifact (Linux)
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ubuntu-latest-LeapRemote-Server
+          path: target/LeapRemote-Server
+
+      # 上传Linux aarch64平台的构建产物
+      - name: Upload artifact (Linux aarch64)
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'aarch64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ubuntu-latest-LeapRemote-Server-aarch64
+          path: target/LeapRemote-Server
+
+      # 上传macOS x86_64平台的构建产物
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'macos-latest' && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-latest-LeapRemote-Server
+          path: target/LeapRemote-Server
+
+      # 上传macOS aarch64平台的构建产物
+      - name: Upload artifact (macOS aarch64)
+        if: matrix.os == 'macos-latest' && matrix.arch == 'aarch64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-latest-LeapRemote-Server-aarch64
+          path: target/LeapRemote-Server
+
+      # 上传Windows x86_64平台的构建产物
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest' && matrix.arch == 'x86_64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-latest-LeapRemote-Server
+          path: target/LeapRemote-Server.exe
+
+      # 上传Windows aarch64平台的构建产物
+      - name: Upload artifact (Windows aarch64)
+        if: matrix.os == 'windows-latest' && matrix.arch == 'aarch64'
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-latest-LeapRemote-Server-aarch64
+          path: target/LeapRemote-Server.exe
