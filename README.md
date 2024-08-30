@@ -7,7 +7,7 @@ Features:
 
 This repository is the server port.
 Server Features:
-1. Native-Image generate native executable file
+1. Available to generate the native executable file with Native-Image
 2. Buggy...
 
 Android Port source here: [https://github.com/mikechenczy/LeapRemote-Android-Public](https://github.com/mikechenczy/LeapRemote-Android-Public)
