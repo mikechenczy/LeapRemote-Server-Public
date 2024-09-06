@@ -284,7 +284,7 @@
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
-  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"checkVersionAndroidNew","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }, {"name":"getMessageContent","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }, {"name":"init","parameterTypes":[] }, {"name":"publicIp","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }]
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"checkVersionAndroidNew","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }, {"name":"getMessageContent","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }, {"name":"init","parameterTypes":[] }, {"name":"publicIp","parameterTypes":["jakarta.servlet.http.HttpServletRequest"] }, {"name":"publicIp","parameterTypes":["jakarta.servlet.http.HttpServletRequest", "java.lang.String"] }]
 },
 {
   "name":"com.mj.leapremote.controller.FileController",
@@ -3845,6 +3845,10 @@
 },
 {
   "name":"org.springframework.web.bind.annotation.Mapping",
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"org.springframework.web.bind.annotation.RequestBody",
   "queryAllDeclaredMethods":true
 },
 {
