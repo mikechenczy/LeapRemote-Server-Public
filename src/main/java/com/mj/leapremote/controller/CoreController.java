@@ -12,7 +12,8 @@ import com.mj.leapremote.util.PingUtil;
 import com.mj.leapremote.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -215,7 +216,7 @@ public class CoreController {
     @RequestMapping(value = "/getDeviceByConnectId")
     public String getDeviceByConnectId(HttpServletRequest request) {
         String connectId = Utils.urlString(request.getParameter("connectId"));
-        if(StringUtils.isEmpty(connectId)) {
+        if(Utils.stringIsEmpty(connectId)) {
             return null;
         }
         JSONObject result = new JSONObject();
@@ -240,7 +241,7 @@ public class CoreController {
     @RequestMapping(value = "/helpPingIp")
     public String helpPingIp(HttpServletRequest request) {
         String deviceId = Utils.urlString(request.getParameter("deviceId"));
-        if(StringUtils.isEmpty(deviceId)) {
+        if(Utils.stringIsEmpty(deviceId)) {
             return null;
         }
         UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
@@ -279,25 +280,46 @@ public class CoreController {
         return result.toString();
     }
 
+    //This is for the old version.
     @ResponseBody
     @RequestMapping(value = "/publicIp")
     public String publicIp(HttpServletRequest request) {
         String deviceId = Utils.urlString(request.getParameter("deviceId"));
-        if(StringUtils.isEmpty(deviceId)) {
-            return null;
+        if(Utils.stringIsEmpty(deviceId)) {
+            return "{}";
         }
         UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
         if(userData==null) {
-            return null;
+            return "{}";
         }
         if(request.getParameter("hosts")==null) {
-            return null;
+            return "{}";
         }
-        JSONObject result = new JSONObject();
         JSONArray hosts = JSON.parseArray(request.getParameter("hosts"));
         //System.out.println(hosts);
         userData.setIps(hosts.toString());
         UserController.userController.userDataService.update(userData);
-        return result.toString();
+        return "{}";
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/publicIp")
+    public String publicIpPost(HttpServletRequest request, @RequestBody String entity) {
+        String deviceId = Utils.urlString(request.getParameter("deviceId"));
+        if(Utils.stringIsEmpty(deviceId)) {
+            return "Invalid parameter";
+        }
+        UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
+        if(userData==null) {
+            return "Invalid parameter";
+        }
+        if(Utils.stringIsEmpty(entity)) {
+            return "Invalid parameter";
+        }
+        JSONArray hosts = JSON.parseArray(entity);
+        //System.out.println(hosts);
+        userData.setIps(hosts.toString());
+        UserController.userController.userDataService.update(userData);
+        return "success";
     }
 }
