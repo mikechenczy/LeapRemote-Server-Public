@@ -64,6 +64,10 @@ public class Handler {
 
     public static boolean removeHandler(String deviceId) throws IOException {
         if (handles.containsKey(deviceId)) {
+            Session session = handles.get(deviceId);
+            if (session!=null && session.isOpen()) {
+                session.close();
+            }
             handles.remove(deviceId);
             enabledDevices.remove(deviceId);
             directEnabledDevices.remove(deviceId);
@@ -76,31 +80,8 @@ public class Handler {
                     UserController.userController.userDataService.update(userData);
                 }
             }
-            new Thread(Handler::refreshDevices).start();
+            new Thread(() -> Handler.refreshDevicesAt(deviceId)).start();
             return true;
-        }
-        return false;
-    }
-
-    public static synchronized boolean removeHandler(Session session) throws IOException {
-        for (String deviceId : handles.keySet()) {
-            Session s = handles.get(deviceId);
-            if (s == session) {
-                handles.remove(deviceId);
-                enabledDevices.remove(deviceId);
-                directEnabledDevices.remove(deviceId);
-                UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
-                if (userData != null && userData.getControlId() != 0) {
-                    Control control = ControlService.get(userData.getControlId());
-                    if (control != null) {
-                        control.removeControl(deviceId);
-                        userData.setControlId(0);
-                        UserController.userController.userDataService.insertOrUpdate(userData);
-                    }
-                }
-                refreshDevices();
-                return true;
-            }
         }
         return false;
     }
@@ -109,26 +90,53 @@ public class Handler {
         return handles.size();
     }
 
-    public static void refreshDevices() {
+    public static void refreshAllDevices() {
         synchronized (handles) {
             for (String deviceId : handles.keySet()) {
-                new Thread(() -> refreshDevices(deviceId)).start();
+                new Thread(() -> refreshDevicesFor(deviceId)).start();
             }
         }
     }
 
-    public static void refreshDevices(String deviceId) {
+    public static void refreshDevicesAt(String id) {
+        for (String deviceId : handles.keySet()) {
+            new Thread(() -> {
+                Session session = handles.get(deviceId);
+                if (session == null || !session.isOpen())
+                    return;
+                UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
+                if (userData == null || Utils.stringIsEmpty(userData.getDevices()))
+                    return;
+                JSONArray targetDevices = JSON.parseArray(userData.getDevices());
+                boolean needRefresh = false;
+                for(int i=0;i<targetDevices.size();i++) {
+                    JSONObject device = targetDevices.getJSONObject(i);
+                    if (!device.containsKey("deviceId"))
+                        continue;
+                    if(device.getString("deviceId").equals(id))
+                        needRefresh = true;
+                }
+                if(!needRefresh) {
+                    return;
+                }
+                refreshDevicesFor(deviceId);
+            }).start();
+        }
+    }
+
+    public static void refreshDevicesFor(String deviceId) {
         Session session = handles.get(deviceId);
+        if (session == null || !session.isOpen())
+            return;
         UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
-        if (session == null || userData == null || Utils.stringIsEmpty(userData.getDevices()) || !session.isOpen())
+        if (userData == null || Utils.stringIsEmpty(userData.getDevices()))
             return;
         JSONArray devices = new JSONArray();
-        JSON.parseArray(userData.getDevices()).forEach(device -> {
-            if (!(device instanceof JSONObject))
-                return;
-            JSONObject d = (JSONObject) device;
+        JSONArray targetDevices = JSON.parseArray(userData.getDevices());
+        for(int i=0;i<targetDevices.size();i++) {
+            JSONObject d = targetDevices.getJSONObject(i);
             if (!d.containsKey("deviceId"))
-                return;
+                continue;
             String id = d.getString("deviceId");
             UserData ud = UserController.userController.userDataService.getUserDataByDeviceId(id);
             JSONObject jsonObject = new JSONObject();
@@ -139,12 +147,12 @@ public class Handler {
             if (ud == null) {
                 jsonObject.put("name", "不存在该设备");
                 devices.add(jsonObject);
-                return;
+                continue;
             }
             if (ud.getDeviceInfo() == null) {
                 jsonObject.put("name", "未知名称");
                 devices.add(jsonObject);
-                return;
+                continue;
             }
             try {
                 JSONObject deviceInfo = JSON.parseObject(ud.getDeviceInfo());
@@ -155,7 +163,7 @@ public class Handler {
                 jsonObject.put("name", "未知名称");
                 devices.add(jsonObject);
             }
-        });
+        }
         JSONObject result = new JSONObject();
         result.put("type", "devices");
         result.put("devices", devices);

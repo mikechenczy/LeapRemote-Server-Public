@@ -67,7 +67,7 @@ public class Control {
         return false;
     }
 
-    private void checkRemove(String deviceId) throws IOException {
+    private void checkRemove(String deviceId) {
         if(controllerDeviceIds.size()==0) {
             ControlService.removeControl(controlId);
             UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(controlledDeviceId);

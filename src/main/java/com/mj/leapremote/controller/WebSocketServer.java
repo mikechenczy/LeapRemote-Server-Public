@@ -141,7 +141,7 @@ public class WebSocketServer {
                 }
                 userData.setDevices(jsonArray.toString());
                 UserController.userController.userDataService.update(userData);
-                Handler.refreshDevices(deviceId);
+                Handler.refreshDevicesFor(deviceId);
                 break;
             }
             case "remote": {
@@ -155,7 +155,7 @@ public class WebSocketServer {
                 if(request.getBooleanValue("enabled")) {
                     if(!Handler.enabledDevices.contains(deviceId)) {
                         Handler.enabledDevices.add(deviceId);
-                        Handler.refreshDevices();
+                        Handler.refreshDevicesAt(deviceId);
                     }
                 } else {
                     if(!Handler.enabledDevices.contains(deviceId)) {
@@ -171,7 +171,7 @@ public class WebSocketServer {
                         }
                     }
                     Handler.enabledDevices.remove(deviceId);
-                    Handler.refreshDevices();
+                    Handler.refreshDevicesAt(deviceId);
                 }
                 break;
             }
@@ -184,7 +184,7 @@ public class WebSocketServer {
                 userData.setIp(request.getString("ip"));
                 userData.setDeviceInfo(request.getString("deviceInfo"));
                 UserController.userController.userDataService.update(userData);
-                Handler.refreshDevices();
+                Handler.refreshDevicesAt(deviceId);
                 break;
             }
             case "devices": {
@@ -195,7 +195,7 @@ public class WebSocketServer {
                     userData.setDevices(request.getString("devices"));
                     UserController.userController.userDataService.update(userData);
                 }
-                Handler.refreshDevices(deviceId);
+                Handler.refreshDevicesFor(deviceId);
                 break;
             }
             case "send": {

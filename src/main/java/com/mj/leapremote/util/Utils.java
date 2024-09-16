@@ -180,18 +180,22 @@ public class Utils {
 
     public static void sendMessageSync(Session session, String message) throws IOException {
         synchronized (session) {
-            session.getBasicRemote().sendText(message);
+            if(session.isOpen()) {
+                session.getBasicRemote().sendText(message);
+            }
         }
     }
 
     public static void sendMessage(Session session, String message, OnSendFailedListener onSendFailedListener) {
         new Thread(() -> {
             synchronized (session) {
-                try {
-                    session.getBasicRemote().sendText(message);
-                } catch (IOException e) {
-                    if (onSendFailedListener!=null)
-                        onSendFailedListener.onSendFailed(session, message, e);
+                if(session.isOpen()) {
+                    try {
+                        session.getBasicRemote().sendText(message);
+                    } catch (IOException e) {
+                        if (onSendFailedListener != null)
+                            onSendFailedListener.onSendFailed(session, message, e);
+                    }
                 }
             }
         }).start();
