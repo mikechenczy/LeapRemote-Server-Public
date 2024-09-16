@@ -155,24 +155,22 @@ public class WebSocketServer {
                 if(request.getBooleanValue("enabled")) {
                     if(!Handler.enabledDevices.contains(deviceId)) {
                         Handler.enabledDevices.add(deviceId);
-                        Handler.refreshDevicesAt(deviceId);
                     }
                 } else {
-                    if(!Handler.enabledDevices.contains(deviceId)) {
-                        return;
-                    }
-                    UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
-                    if (userData != null && userData.getControlId() != 0) {
-                        Control control = ControlService.get(userData.getControlId());
-                        if (control != null) {
-                            control.removeControl(deviceId);
-                            userData.setControlId(0);
-                            UserController.userController.userDataService.update(userData);
+                    if(Handler.enabledDevices.contains(deviceId)) {
+                        UserData userData = UserController.userController.userDataService.getUserDataByDeviceId(deviceId);
+                        if (userData != null && userData.getControlId() != 0) {
+                            Control control = ControlService.get(userData.getControlId());
+                            if (control != null) {
+                                control.removeControl(deviceId);
+                                userData.setControlId(0);
+                                UserController.userController.userDataService.update(userData);
+                            }
                         }
+                        Handler.enabledDevices.remove(deviceId);
                     }
-                    Handler.enabledDevices.remove(deviceId);
-                    Handler.refreshDevicesAt(deviceId);
                 }
+                Handler.refreshDevicesAt(deviceId);
                 break;
             }
             case "basicData": {
@@ -233,7 +231,6 @@ public class WebSocketServer {
                     Utils.sendMessageSync(session, response.toString());
                     return;
                 }
-
                 UserData userData = UserController.userController.userDataService.getUserDataByConnectId(request.getString("connectId"));
                 if (userData == null) {
                     JSONObject response = new JSONObject();
